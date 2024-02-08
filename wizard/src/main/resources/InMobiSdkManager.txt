@@ -1,0 +1,262 @@
+package com.inmobi.ads.helper
+
+import android.app.Activity
+import android.util.Log
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import com.inmobi.ads.AdMetaInfo
+import com.inmobi.ads.InMobiAdRequestStatus
+import com.inmobi.ads.InMobiBanner
+import com.inmobi.ads.InMobiInterstitial
+import com.inmobi.ads.InMobiNative
+import com.inmobi.ads.listeners.BannerAdEventListener
+import com.inmobi.ads.listeners.InterstitialAdEventListener
+import com.inmobi.ads.listeners.NativeAdEventListener
+import com.inmobi.sdk.InMobiSdk
+import com.inmobi.sdk.SdkInitializationListener
+import com.inmobi.ads.helper.modal.InMobiConfigurations
+
+class InMobiSdkManager(private val sdkConfigurations: InMobiConfigurations) {
+    var isSdkInitialized: Boolean = false
+    val bannerMap: MutableMap<InMobiConfigurations.PlacementInfo, InMobiBanner?> = mutableMapOf()
+    val interstitialMap: MutableMap<InMobiConfigurations.PlacementInfo, InMobiInterstitial?> = mutableMapOf()
+    val nativeMap: MutableMap<InMobiConfigurations.PlacementInfo, InMobiNative?> = mutableMapOf()
+    val parent : ViewGroup= (sdkConfigurations.context as Activity).window.decorView.findViewById(android.R.id.content)
+
+    val defaultBannerPlacementInfo = InMobiConfigurations.PlacementInfo(320, 50, 1234567890, 60, InMobiConfigurations.AdType.BANNER, parent )
+    val defaultInterstitialPlacementInfo = InMobiConfigurations.PlacementInfo(0, 0, 1234567890, 60, InMobiConfigurations.AdType.INTERSTITIAL, null)
+    val defaultNativePlacementInfo = InMobiConfigurations.PlacementInfo(0, 0, 1234567890, 60, InMobiConfigurations.AdType.NATIVE, parent)
+
+
+    fun initInMobiSdk() {
+        InMobiSdk.init(sdkConfigurations.context, "asodkjsssjsjsjsjsjsjsjsjsjsjsjss", null, SdkInitializationListener {
+            isSdkInitialized = if (it == null) {
+                Log.e("", "InMobisdk init success")
+                true
+            } else {
+                Log.e("", "InMobisdk init failed - " + it.message)
+                false
+            }
+        })
+        InMobiSdk.setLogLevel(InMobiSdk.LogLevel.DEBUG)
+
+    }
+
+    fun loadAndAttachBanner(placementInfo: InMobiConfigurations.PlacementInfo) {
+        if (isSdkInitialized) {
+            val placementId = placementInfo.placementId!!
+            val inmobiBanner = InMobiBanner(sdkConfigurations.context, placementId)
+            inmobiBanner.setBannerSize(placementInfo.width!!, placementInfo.height!!)
+            inmobiBanner.setListener(object : BannerAdEventListener() {
+                override fun onAdFetchSuccessful(p0: InMobiBanner, p1: AdMetaInfo) {
+
+                }
+
+                override fun onAdLoadSucceeded(p0: InMobiBanner, p1: AdMetaInfo) {
+                    placementInfo.adContainer?.addView(inmobiBanner)
+                }
+
+                override fun onAdLoadFailed(p0: InMobiBanner, p1: InMobiAdRequestStatus) {
+
+                }
+
+                override fun onAdClicked(p0: InMobiBanner, p1: MutableMap<Any, Any>?) {
+
+                }
+
+                override fun onRequestPayloadCreated(p0: ByteArray?) {
+
+                }
+
+                override fun onRequestPayloadCreationFailed(p0: InMobiAdRequestStatus) {
+
+                }
+
+                override fun onAdFetchFailed(p0: InMobiBanner, p1: InMobiAdRequestStatus) {
+
+                }
+
+                override fun onAdDisplayed(p0: InMobiBanner) {
+
+                }
+
+                override fun onAdDismissed(p0: InMobiBanner) {
+
+                }
+
+                override fun onUserLeftApplication(p0: InMobiBanner) {
+
+                }
+
+                override fun onRewardsUnlocked(p0: InMobiBanner, p1: MutableMap<Any, Any>?) {
+
+                }
+            })
+            bannerMap[placementInfo] = inmobiBanner
+            inmobiBanner.load()
+
+        } else {
+            Log.e("", "InMobi SDK not initialized")
+        }
+    }
+
+
+    fun loadInterstitial(placementInfo: InMobiConfigurations.PlacementInfo) {
+        if (isSdkInitialized) {
+            val interstitial = InMobiInterstitial(
+                sdkConfigurations.context,
+                placementInfo.placementId!!,
+                object : InterstitialAdEventListener() {
+                    override fun onAdFetchSuccessful(p0: InMobiInterstitial, p1: AdMetaInfo) {
+
+                    }
+
+
+                    override fun onAdLoadSucceeded(p0: InMobiInterstitial, p1: AdMetaInfo) {
+
+                    }
+
+                    override fun onAdLoadFailed(p0: InMobiInterstitial, p1: InMobiAdRequestStatus) {
+                        interstitialMap[placementInfo] = null
+                    }
+
+                    override fun onAdClicked(p0: InMobiInterstitial, p1: MutableMap<Any, Any>?) {
+
+                    }
+
+                    override fun onRequestPayloadCreated(p0: ByteArray?) {
+
+                    }
+
+                    override fun onRequestPayloadCreationFailed(p0: InMobiAdRequestStatus) {
+
+                    }
+
+                    override fun onAdFetchFailed(p0: InMobiInterstitial, p1: InMobiAdRequestStatus) {
+
+                    }
+
+                    override fun onAdWillDisplay(p0: InMobiInterstitial) {
+
+                    }
+
+                    override fun onAdDisplayed(p0: InMobiInterstitial, p1: AdMetaInfo) {
+
+                    }
+
+                    override fun onAdDisplayFailed(p0: InMobiInterstitial) {
+
+                    }
+
+                    override fun onAdDismissed(p0: InMobiInterstitial) {
+
+                    }
+
+                    override fun onUserLeftApplication(p0: InMobiInterstitial) {
+
+                    }
+
+                    override fun onRewardsUnlocked(p0: InMobiInterstitial, p1: MutableMap<Any, Any>?) {
+
+                    }
+                })
+            interstitialMap[placementInfo] = interstitial
+            interstitial.load()
+        }
+
+    }
+
+    fun showInterstitial(placementInfo: InMobiConfigurations.PlacementInfo) {
+        val interstitialAd = interstitialMap[placementInfo]
+        if (interstitialAd != null && interstitialAd.isReady) {
+            interstitialAd.show()
+        } else {
+            Log.e("", "Interstitial ad not ready")
+        }
+    }
+
+    fun loadAndAttachNative(placementInfo: InMobiConfigurations.PlacementInfo) {
+        if (isSdkInitialized) {
+            val inmobiNative =
+                InMobiNative(sdkConfigurations.context, placementInfo.placementId!!, object : NativeAdEventListener() {
+                    override fun onAdFetchSuccessful(p0: InMobiNative, p1: AdMetaInfo) {
+
+                    }
+
+                    override fun onAdLoadSucceeded(p0: InMobiNative, p1: AdMetaInfo) {
+                        val adView = p0.getPrimaryViewOfWidth(
+                            sdkConfigurations.context,
+                            null,
+                            placementInfo.adContainer,
+                            placementInfo.adContainer?.width!!
+                        )
+                        placementInfo.adContainer.addView(adView)
+                    }
+
+                    override fun onAdLoadFailed(p0: InMobiNative, p1: InMobiAdRequestStatus) {
+                        nativeMap[placementInfo] = null
+                    }
+
+                    override fun onAdClicked(p0: InMobiNative) {
+
+                    }
+
+                    override fun onAdClicked(p0: InMobiNative, p1: MutableMap<Any, Any>?) {
+
+                    }
+
+                    override fun onRequestPayloadCreated(p0: ByteArray?) {
+
+                    }
+
+                    override fun onRequestPayloadCreationFailed(p0: InMobiAdRequestStatus) {
+
+                    }
+
+
+                    override fun onAdFullScreenDismissed(p0: InMobiNative) {
+
+                    }
+
+                    override fun onAdFullScreenWillDisplay(p0: InMobiNative) {
+
+                    }
+
+                    override fun onAdFullScreenDisplayed(p0: InMobiNative) {
+
+                    }
+
+                    override fun onUserWillLeaveApplication(p0: InMobiNative) {
+
+                    }
+
+                    override fun onAdImpressed(p0: InMobiNative) {
+
+                    }
+
+                    override fun onAdStatusChanged(p0: InMobiNative) {
+
+                    }
+                })
+            nativeMap[placementInfo] = inmobiNative
+            inmobiNative.load()
+        }
+    }
+
+    fun destroyBanner(placementInfo: InMobiConfigurations.PlacementInfo) {
+        val inmobiBanner = bannerMap[placementInfo]
+        inmobiBanner?.destroy()
+        bannerMap[placementInfo] = null
+    }
+
+    fun destroyInterstitial(placementInfo: InMobiConfigurations.PlacementInfo) {
+        interstitialMap[placementInfo] = null
+
+    }
+
+    fun destroyNative(placementInfo: InMobiConfigurations.PlacementInfo) {
+        val inmobiNative = nativeMap[placementInfo]
+        inmobiNative?.destroy()
+        nativeMap[placementInfo] = null
+    }
+}

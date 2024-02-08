@@ -1,0 +1,26 @@
+package com.inmobi.ads.helper.modal
+
+import android.content.Context
+import android.view.ViewGroup
+import com.inmobi.sdk.InMobiSdk.LogLevel
+
+data class InMobiConfigurations(
+    val context: Context,
+    val accountId: String,
+    val logLevel: LogLevel,
+    val consent: String? = null
+
+) {
+    enum class AdType {
+        BANNER, INTERSTITIAL, NATIVE
+    }
+
+    class PlacementInfo (
+        val width: Int? = null,
+        val height: Int? = null,
+        val placementId: Long? = null,
+        val refreshInterval: Int? = null,
+        val adType: AdType? = null,
+        val adContainer: ViewGroup?= null
+    )
+}
